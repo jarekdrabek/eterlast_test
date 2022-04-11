@@ -1,4 +1,9 @@
-import json
+from freezegun import freeze_time
+
+freezer = freeze_time("2022-04-11 15:30:27")
+freezer.start()
+
+import datetime
 import unittest
 
 from nfts import app, db
@@ -28,19 +33,31 @@ class NftTests(unittest.TestCase):
         response = app.test_client().post('/nft-api/v1/mint')
         self.assertEquals(response.status_code, 201)
         self.assertIsNotNone(response.location)
-        self.assertTrue('Created NFT with asset id: ' in response.text )
+        self.assertTrue('Created NFT with asset id: ' in response.text)
 
+    @freeze_time("2022-04-11 15:50:27")
     def test_minting_and_getting(self):
+        aa = datetime.datetime.utcnow()
         mint_response = app.test_client().post('/nft-api/v1/mint')
         asset_id = mint_response.location.split('/')[-1]
         retrieved_element = app.test_client().get(mint_response.location)
-        self.assertEquals(retrieved_element.json, {'asset_id': asset_id, 'name': 'name_to_change'})
+        self.assertEquals(retrieved_element.json,
+                          {'asset_id': asset_id, 'buyer': None, 'date_of_creation': '2022-04-11 15:50:27',
+                           'description': None, 'external_link': None, 'name': 'name_to_change', 'picture': None,
+                           'royalties': None, 'supply': None})
 
+    @freeze_time("2022-04-11 15:50:27")
     def test_minting_and_getting_all(self):
         asset_id1, mint_response1 = self.__mint_and_return_asset_id()
         asset_id2, mint_response2 = self.__mint_and_return_asset_id()
         retrieved_element = app.test_client().get('/nft-api/v1/NFT/all')
-        self.assertEquals(retrieved_element.json, [{'asset_id': asset_id1, 'name': 'name_to_change'}, {'asset_id': asset_id2, 'name': 'name_to_change'}])
+        self.assertEquals(retrieved_element.json, [
+            {'asset_id': asset_id1, 'buyer': None, 'date_of_creation': '2022-04-11 15:50:27',
+             'description': None, 'external_link': None, 'name': 'name_to_change', 'picture': None, 'royalties': None,
+             'supply': None},
+            {'asset_id': asset_id2, 'buyer': None, 'date_of_creation': '2022-04-11 15:50:27',
+             'description': None, 'external_link': None, 'name': 'name_to_change', 'picture': None, 'royalties': None,
+             'supply': None}])
 
     def test_404(self):
         response = app.test_client().get('/notexisting')
@@ -51,3 +68,6 @@ class NftTests(unittest.TestCase):
         mint_response = app.test_client().post('/nft-api/v1/mint')
         asset_id = mint_response.location.split('/')[-1]
         return asset_id, mint_response
+
+
+freezer.stop()

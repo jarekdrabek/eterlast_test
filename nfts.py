@@ -1,4 +1,4 @@
-import json
+import uuid
 from datetime import datetime
 from random import randint
 
@@ -19,11 +19,14 @@ class User(db.Model, SerializerMixin):
         return f'User(user_wallet_address="{self.id}")'
 
 
+def generate_uuid():
+    return str(uuid.uuid4())
+
+
 class Collection(db.Model, SerializerMixin):
     serialize_only = ('id', 'name', 'description', 'creator', 'creator_network')
 
-    id = db.Column(db.Integer, primary_key=True)
-    # id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = db.Column(db.String, primary_key=True, default=generate_uuid)
     name = db.Column(db.String(20), nullable=False)
     description = db.Column(db.Text(120))
     creator = db.Column(db.Integer, db.ForeignKey('user.address'), nullable=False )
@@ -34,11 +37,15 @@ class Collection(db.Model, SerializerMixin):
         return f'Collection("{self.name}" [created by "{self.creator}" on network "{self.creator_network}"])'
 
 
+def generate_16char_hex():
+    return hex(randint(0, 2**64))
+
+
 class NFT(db.Model, SerializerMixin):
     serialize_only = ('asset_id', 'name', 'picture', 'external_link', 'description', 'supply', 'royalties', 'date_of_creation', 'buyer')
 
-    asset_id = db.Column(db.String(16), primary_key=True)
-    name = db.Column(db.String(20), nullable=False)
+    asset_id = db.Column(db.String(16), primary_key=True, default=generate_16char_hex)
+    name = db.Column(db.String(20), nullable=False, default='name_to_change')
     picture = db.Column(db.String(120))
     external_link = db.Column(db.String(120))
     description = db.Column(db.Text(120))
@@ -55,11 +62,10 @@ class NFT(db.Model, SerializerMixin):
 
 @app.route('/nft-api/v1/mint', methods=['POST'])
 def mint():
-    asset_id = hex(randint(0, 100000000000000000000))
-    new_nft = NFT(asset_id=asset_id, name='name_to_change')
+    new_nft = NFT()
     db.session.add(new_nft)
     db.session.commit()
-    return f'Created NFT with asset id: {asset_id}', 201, {'location': f'/nft-api/v1/NFT/{asset_id}'}
+    return f'Created NFT with asset id: {new_nft.asset_id}', 201, {'location': f'/nft-api/v1/NFT/{new_nft.asset_id}'}
 
 
 @app.route('/nft-api/v1/NFT/all', methods=['GET'])
