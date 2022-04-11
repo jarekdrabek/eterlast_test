@@ -10,8 +10,6 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
 db = SQLAlchemy(app)
 
 
-
-
 @app.route('/nft-api/v1/mint', methods=['POST'])
 def mint():
     pass
@@ -25,6 +23,15 @@ def get_nft(id):
 @app.route('/nft-api/v1/NFT/all', methods=['GET'])
 def get_all_nft():
     pass
+
+@app.errorhandler(500)
+def serverError():
+    return "A server error: contact administrator"
+
+@app.errorhandler(404)
+def pageNotFound(e):
+    return "Notification: The page was not found"
+
 
 
 if __name__ == '__main__':
