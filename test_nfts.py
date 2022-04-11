@@ -3,7 +3,6 @@ from freezegun import freeze_time
 freezer = freeze_time("2022-04-11 15:30:27")
 freezer.start()
 
-import datetime
 import unittest
 
 from nfts import app, db
@@ -37,7 +36,6 @@ class NftTests(unittest.TestCase):
 
     @freeze_time("2022-04-11 15:50:27")
     def test_minting_and_getting(self):
-        aa = datetime.datetime.utcnow()
         mint_response = app.test_client().post('/nft-api/v1/mint')
         asset_id = mint_response.location.split('/')[-1]
         retrieved_element = app.test_client().get(mint_response.location)
