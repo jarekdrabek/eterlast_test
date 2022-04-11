@@ -7,10 +7,12 @@ from nfts import app, db
 class NftTests(unittest.TestCase):
 
     def setUp(self) -> None:
+        db.drop_all()
         db.create_all()
 
     def tearDown(self) -> None:
         db.drop_all()
+        db.create_all()
 
     def test_getting_not_existing_nft(self):
         response = app.test_client().get('/nft-api/v1/NFT/notexistingone')

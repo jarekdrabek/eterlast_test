@@ -11,15 +11,16 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
 db = SQLAlchemy(app)
 
 
-class User(db.Model):
+class User(db.Model, SerializerMixin):
+    serialize_only = ('address')
     address = db.Column(db.String, primary_key=True)
 
     def __repr__(self):
         return f'User(user_wallet_address="{self.id}")'
 
 
-class Collection(db.Model):
-    serialize_only = ('id', 'name', 'description', 'creator')
+class Collection(db.Model, SerializerMixin):
+    serialize_only = ('id', 'name', 'description', 'creator', 'creator_network')
 
     id = db.Column(db.Integer, primary_key=True)
     # id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -34,7 +35,7 @@ class Collection(db.Model):
 
 
 class NFT(db.Model, SerializerMixin):
-    serialize_only = ('asset_id', 'name')
+    serialize_only = ('asset_id', 'name', 'picture', 'external_link', 'description', 'supply', 'royalties', 'date_of_creation', 'buyer')
 
     asset_id = db.Column(db.String(16), primary_key=True)
     name = db.Column(db.String(20), nullable=False)
