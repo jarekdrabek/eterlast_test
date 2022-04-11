@@ -1,9 +1,10 @@
 import json
 from datetime import datetime
+from random import randint
 
-from flask import Flask
+from flask import Flask, jsonify
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import session
+from sqlalchemy_serializer import SerializerMixin
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
@@ -18,6 +19,8 @@ class User(db.Model):
 
 
 class Collection(db.Model):
+    serialize_only = ('id', 'name', 'description', 'creator')
+
     id = db.Column(db.Integer, primary_key=True)
     # id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = db.Column(db.String(20), nullable=False)
@@ -30,13 +33,15 @@ class Collection(db.Model):
         return f'Collection("{self.name}" [created by "{self.creator}" on network "{self.creator_network}"])'
 
 
-class NFT(db.Model):
+class NFT(db.Model, SerializerMixin):
+    serialize_only = ('asset_id', 'name')
+
     asset_id = db.Column(db.String(16), primary_key=True)
     name = db.Column(db.String(20), nullable=False)
     picture = db.Column(db.String(120))
     external_link = db.Column(db.String(120))
     description = db.Column(db.Text(120))
-    collection_id = db.Column(db.String(16), db.ForeignKey('collection.id'), nullable=False)
+    collection_id = db.Column(db.String(16), db.ForeignKey('collection.id'))
 
     supply = db.Column(db.Integer)
     royalties = db.Column(db.Integer)
@@ -49,21 +54,28 @@ class NFT(db.Model):
 
 @app.route('/nft-api/v1/mint', methods=['POST'])
 def mint():
-    pass
+    asset_id = hex(randint(0, 100000000000000000000))
+    new_nft = NFT(asset_id=asset_id, name='name_to_change')
+    db.session.add(new_nft)
+    db.session.commit()
+    return f'Created NFT with asset id: {asset_id}', 201, {'location': f'/nft-api/v1/NFT/{asset_id}'}
 
 
 @app.route('/nft-api/v1/NFT/all', methods=['GET'])
 def get_all_nft():
-    return str(NFT.query.order_by(NFT.date_of_creation).all())
+    return jsonify([nft2.to_dict() for nft2 in NFT.query.order_by(NFT.date_of_creation).all()])
 
 
 @app.route('/nft-api/v1/NFT/<string:asset_id>', methods=['GET'])
 def get_nft(asset_id):
-    return str(NFT.query.filter_by(asset_id=asset_id).first())
+    retrieved_element = NFT.query.filter_by(asset_id=asset_id).first()
+    return jsonify(retrieved_element.to_dict()) if retrieved_element else "NFT Not found"
+
 
 @app.errorhandler(500)
 def serverError():
     return "A server error: contact administrator"
+
 
 @app.errorhandler(404)
 def pageNotFound(e):
