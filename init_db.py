@@ -1,4 +1,4 @@
-from model import User, db, NFT, Collection
+from nfts import User, NFT, Collection, db
 
 
 def init_db():
