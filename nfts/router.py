@@ -1,4 +1,5 @@
 from flask import jsonify
+from sqlalchemy import desc
 
 from nfts import app, db
 from nfts.model import NFT
@@ -14,7 +15,7 @@ def mint():
 
 @app.route('/nft-api/v1/NFT/all', methods=['GET'])
 def get_all_nft():
-    return jsonify([nft2.to_dict() for nft2 in NFT.query.order_by(NFT.date_of_creation).all()])
+    return jsonify([nft2.to_dict() for nft2 in NFT.query.order_by(desc(NFT.date_of_creation)).all()])
 
 
 @app.route('/nft-api/v1/NFT/<string:asset_id>', methods=['GET'])

@@ -2,6 +2,7 @@ from nfts.model import User, NFT, Collection, db
 
 
 def init_db():
+    print('Initializing DB with dummy data')
     db.drop_all()
     db.create_all()
     user1 = User(address="0x783464387jkhkjdsfs")
