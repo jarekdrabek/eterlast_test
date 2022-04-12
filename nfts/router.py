@@ -1,4 +1,4 @@
-from flask import jsonify
+from flask import jsonify, request
 from sqlalchemy import desc
 
 from nfts import app, db
@@ -7,7 +7,8 @@ from nfts.model import NFT
 
 @app.route('/nft-api/v1/mint', methods=['POST'])
 def mint():
-    new_nft = NFT()
+    data = dict(request.form)
+    new_nft = NFT(**data)
     db.session.add(new_nft)
     db.session.commit()
     return f'Created NFT with asset id: {new_nft.asset_id}', 201, {'location': f'/nft-api/v1/NFT/{new_nft.asset_id}'}

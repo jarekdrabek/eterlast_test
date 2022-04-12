@@ -29,20 +29,28 @@ class NftTests(unittest.TestCase):
         self.assertEquals(response.json, [])
 
     def test_mint_response(self):
-        response = app.test_client().post('/nft-api/v1/mint')
+        response = app.test_client().post('/nft-api/v1/mint',
+                                          data={"name": "Super duper NFT",
+                                                "picture": "http://www.xyz.co.uk/dfshjagjfjhd",
+                                                "external_link": "http://www.xyz.co.uk/dfshjagjfjhd/info",
+                                                "description": "Lorem ipsum dori"})
         self.assertEquals(response.status_code, 201)
         self.assertIsNotNone(response.location)
         self.assertTrue('Created NFT with asset id: ' in response.text)
 
     @freeze_time("2022-04-11 15:50:27")
     def test_minting_and_getting(self):
-        mint_response = app.test_client().post('/nft-api/v1/mint')
+        mint_response = app.test_client().post('/nft-api/v1/mint', data={"name": "Super duper NFT",
+                                                                         "picture": "http://www.xyz.co.uk/dfshjagjfjhd",
+                                                                         "external_link": "http://www.xyz.co.uk/dfshjagjfjhd/info",
+                                                                         "description": "Lorem ipsum dori"})
         asset_id = mint_response.location.split('/')[-1]
         retrieved_element = app.test_client().get(mint_response.location)
         self.assertEquals(retrieved_element.json,
                           {'asset_id': asset_id, 'buyer': None, 'date_of_creation': '2022-04-11 15:50:27',
-                           'description': None, 'external_link': None, 'name': 'name_to_change', 'picture': None,
-                           'royalties': None, 'supply': None})
+                           'description': 'Lorem ipsum dori', 'external_link': 'http://www.xyz.co.uk/dfshjagjfjhd/info',
+                           'name': 'Super duper NFT', 'picture': 'http://www.xyz.co.uk/dfshjagjfjhd', 'royalties': None,
+                           'supply': None})
 
     def test_minting_and_getting_all_orderer_by_date_of_creation_descending(self):
         freeze_time("2022-04-11 15:45:27").start()
@@ -52,10 +60,12 @@ class NftTests(unittest.TestCase):
         retrieved_element = app.test_client().get('/nft-api/v1/NFT/all')
         self.assertEquals(retrieved_element.json, [
             {'asset_id': asset_id2, 'buyer': None, 'date_of_creation': '2022-04-11 15:50:27',
-             'description': None, 'external_link': None, 'name': 'name_to_change', 'picture': None, 'royalties': None,
+             'description': 'Lorem ipsum dori', 'external_link': 'http://www.xyz.co.uk/dfshjagjfjhd/info',
+             'name': 'Super duper NFT', 'picture': 'http://www.xyz.co.uk/dfshjagjfjhd', 'royalties': None,
              'supply': None},
             {'asset_id': asset_id1, 'buyer': None, 'date_of_creation': '2022-04-11 15:45:27',
-             'description': None, 'external_link': None, 'name': 'name_to_change', 'picture': None, 'royalties': None,
+             'description': 'Lorem ipsum dori', 'external_link': 'http://www.xyz.co.uk/dfshjagjfjhd/info',
+             'name': 'Super duper NFT', 'picture': 'http://www.xyz.co.uk/dfshjagjfjhd', 'royalties': None,
              'supply': None}])
 
     def test_404(self):
@@ -65,9 +75,9 @@ class NftTests(unittest.TestCase):
 
     @staticmethod
     def __mint_and_return_asset_id():
-        mint_response = app.test_client().post('/nft-api/v1/mint')
+        mint_response = app.test_client().post('/nft-api/v1/mint', data={"name": "Super duper NFT",
+                                                                         "picture": "http://www.xyz.co.uk/dfshjagjfjhd",
+                                                                         "external_link": "http://www.xyz.co.uk/dfshjagjfjhd/info",
+                                                                         "description": "Lorem ipsum dori"})
         asset_id = mint_response.location.split('/')[-1]
         return asset_id, mint_response
-
-
-
