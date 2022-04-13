@@ -2,7 +2,7 @@ from flask import jsonify, request
 from sqlalchemy import desc
 
 from nfts import app, db
-from nfts.model import NFT
+from nfts.model import NFT, Collection
 
 
 @app.route('/nft-api/v1/mint', methods=['POST'])
@@ -24,6 +24,14 @@ def get_nft(asset_id):
     retrieved_element = NFT.query.filter_by(asset_id=asset_id).first()
     return jsonify(retrieved_element.to_dict()) if retrieved_element else "NFT Not found"
 
+
+@app.route('/nft-api/v1/create_collection', methods=['POST'])
+def create_collection():
+    data = dict(request.form)
+    new_collection = Collection(**data)
+    db.session.add(new_collection)
+    db.session.commit()
+    return f'Created Collection with id: : {new_collection.id}', 201, {'location': f'/nft-api/v1/NFT/{new_collection.id}'}
 
 @app.errorhandler(500)
 def server_error():

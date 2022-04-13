@@ -26,7 +26,7 @@ class Collection(db.Model, SerializerMixin):
     name = db.Column(db.String(20), nullable=False)
     description = db.Column(db.Text(120))
     creator = db.Column(db.Integer, db.ForeignKey('user.address'), nullable=False )
-    creator_network = db.Column(db.String(20),)
+    creator_network = db.Column(db.String(20))
     nfts = db.relationship('NFT', backref='collection')
 
     def __repr__(self):

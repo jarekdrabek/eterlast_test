@@ -1,8 +1,12 @@
 from freezegun import freeze_time
 
+from nfts.model import User
+
 freezer = freeze_time("2022-04-11 15:30:27")
 freezer.start()
+
 from nfts import app, db
+
 freezer.stop()
 
 import unittest
@@ -67,6 +71,22 @@ class NftTests(unittest.TestCase):
              'description': 'Lorem ipsum dori', 'external_link': 'http://www.xyz.co.uk/dfshjagjfjhd/info',
              'name': 'Super duper NFT', 'picture': 'http://www.xyz.co.uk/dfshjagjfjhd', 'royalties': None,
              'supply': None}])
+
+    @staticmethod
+    def __create_and_get_test_user():
+        user1 = User(address="0x78346asd7jkhkjdsfs")
+        db.session.add(user1)
+        db.session.commit()
+        return user1
+
+    def test_creating_new_collection(self):
+        user_address = NftTests.__create_and_get_test_user().address
+        response = app.test_client().post('/nft-api/v1/create_collection',
+                                          data={"name": "Collection1",
+                                                "description": "Collection for NFTs",
+                                                "creator": user_address})
+        self.assertIsNotNone(response.location)
+        self.assertTrue('Created Collection with id: ' in response.text)
 
     def test_404(self):
         response = app.test_client().get('/notexisting')
