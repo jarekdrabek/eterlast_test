@@ -1,10 +1,10 @@
 from freezegun import freeze_time
 
-from nfts.model import User
 
 freezer = freeze_time("2022-04-11 15:30:27")
 freezer.start()
 
+from nfts.model import User
 from nfts import app, db
 
 freezer.stop()
@@ -32,7 +32,7 @@ class NftTests(unittest.TestCase):
         self.assertEquals(response.status_code, 200)
         self.assertEquals(response.json, [])
 
-    def test_mint_response(self):
+    def test_mint_nft_response(self):
         response = app.test_client().post('/nft-api/v1/mint',
                                           data={"name": "Super duper NFT",
                                                 "picture": "http://www.xyz.co.uk/dfshjagjfjhd",
@@ -43,7 +43,7 @@ class NftTests(unittest.TestCase):
         self.assertTrue('Created NFT with asset id: ' in response.text)
 
     @freeze_time("2022-04-11 15:50:27")
-    def test_minting_and_getting(self):
+    def test_minting_and_getting_nft(self):
         mint_response = app.test_client().post('/nft-api/v1/mint', data={"name": "Super duper NFT",
                                                                          "picture": "http://www.xyz.co.uk/dfshjagjfjhd",
                                                                          "external_link": "http://www.xyz.co.uk/dfshjagjfjhd/info",
@@ -87,6 +87,31 @@ class NftTests(unittest.TestCase):
                                                 "creator": user_address})
         self.assertIsNotNone(response.location)
         self.assertTrue('Created Collection with id: ' in response.text)
+
+    def test_creating_and_getting_new_collection(self):
+        user_address = NftTests.__create_and_get_test_user().address
+        response = app.test_client().post('/nft-api/v1/create_collection',
+                                          data={"name": "Collection1",
+                                                "description": "Collection for NFTs",
+                                                "creator": user_address})
+        created_collection_id = response.location.split('/')[-1]
+        retrieved_collection = app.test_client().get(response.location)
+        self.assertEquals(retrieved_collection.json, {'creator': user_address,
+                                                      'creator_network': None,
+                                                      'description': 'Collection for NFTs',
+                                                      'id': created_collection_id,
+                                                      'name': 'Collection1'})
+
+    def test_getting_not_existing_collection(self):
+        response = app.test_client().get('/nft-api/v1/collection/notexistingone')
+        self.assertEquals(response.status_code, 200)
+        self.assertEquals(response.text, 'Collection Not found')
+
+    def test_all_existing_collection(self):
+        response = app.test_client().get('/nft-api/v1/collection/all')
+        self.assertEquals(response.status_code, 200)
+        self.assertEquals(response.json, [])
+
 
     def test_404(self):
         response = app.test_client().get('/notexisting')

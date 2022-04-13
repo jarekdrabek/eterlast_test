@@ -31,7 +31,19 @@ def create_collection():
     new_collection = Collection(**data)
     db.session.add(new_collection)
     db.session.commit()
-    return f'Created Collection with id: : {new_collection.id}', 201, {'location': f'/nft-api/v1/NFT/{new_collection.id}'}
+    return f'Created Collection with id: : {new_collection.id}', 201, {'location': f'/nft-api/v1/collection/{new_collection.id}'}
+
+
+@app.route('/nft-api/v1/collection/<string:id>', methods=['GET'])
+def get_collection(id):
+    retrieved_element = Collection.query.filter_by(id=id).first()
+    return jsonify(retrieved_element.to_dict()) if retrieved_element else "Collection Not found"
+
+
+@app.route('/nft-api/v1/collection/all', methods=['GET'])
+def get_all_collections():
+    return jsonify([col.to_dict() for col in Collection.query.all()])
+
 
 @app.errorhandler(500)
 def server_error():
